@@ -3,7 +3,7 @@ package de.kulose.musicquizhost.util;
 import java.util.Random;
 
 public class Util {
-    private static String allowedChars = "ABCDEFGHIJKLMNOPQRSTUVXYZ0123456789";
+    private static String allowedChars = "ABCDEFGHJKLMNOPQRSTUVXYZ0123456789";
     private static int nameLength = 4;
     private static Random random = new Random();
 

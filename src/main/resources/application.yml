@@ -1,0 +1,15 @@
+# default config (development)
+spring:
+  application:
+    name: Quizik
+    url: https://tbd
+  profiles:
+    active: ${ENVIRONMENT:development}
+
+spotify:
+  client-id: ${SPOTIFY_CLIENT_ID}
+  client-secret: ${SPOTIFY_CLIENT_SECRET}
+  token-url: https://accounts.spotify.com/api/token
+
+server:
+  port: 8080
