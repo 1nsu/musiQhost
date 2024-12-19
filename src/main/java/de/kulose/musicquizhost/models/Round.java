@@ -11,4 +11,5 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Round {
     private List<Guess> guesses;
+    private SongData song;
 }

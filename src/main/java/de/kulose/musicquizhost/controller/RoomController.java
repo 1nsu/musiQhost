@@ -43,9 +43,15 @@ public class RoomController {
     }
 
     @Operation(summary = "Closes a room", description = "Closes a room by the player host")
-    @DeleteMapping(path = "/{id}")
-    public void closeRoom(@PathVariable("id") String id, @RequestBody @Valid @NotNull(message = "Player host must be provided") Player player) {
-        roomService.closeRoom(id, player);
+    @DeleteMapping(path = "/{id}/{player}/close")
+    public void closeRoom(@PathVariable("id") String id, @PathVariable("player") @NotNull(message = "Player host must be provided") String playerName) {
+        roomService.closeRoom(id, playerName);
+    }
+
+    @Operation(summary = "Starts game", description = "Starts a quiz room by setting it to active and getting song data for the quiz")
+    @PostMapping(path = "/{id}/{player}/start", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Room startRoom(@PathVariable("id") String id) {
+        return roomService.startRoom(id);
     }
 
     @Operation(summary = "Joins a room", description = "Joins a given player to an open room")

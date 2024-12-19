@@ -1,9 +1,8 @@
 package de.kulose.musicquizhost.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.List;
@@ -25,4 +24,5 @@ public class Room {
     @NotBlank(message = NO_SETTINGS_VALIDATION_MESSAGE)
     private Settings settings;
     private Status status;
+    private int activeRound = 0;
 }
