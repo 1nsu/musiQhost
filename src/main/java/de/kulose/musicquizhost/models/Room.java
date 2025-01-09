@@ -25,4 +25,6 @@ public class Room {
     private Settings settings;
     private Status status;
     private int activeRound = 0;
+    @JsonIgnore
+    private long closeTime;
 }

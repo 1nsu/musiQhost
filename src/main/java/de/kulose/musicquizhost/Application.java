@@ -7,10 +7,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 @SpringBootApplication
 @EnableConfigurationProperties({SpotifyConfig.class})
-public class MusicQHostApplication {
+public class Application {
 
     public static void main(String[] args) {
-        SpringApplication.run(MusicQHostApplication.class, args);
+        SpringApplication.run(Application.class, args);
     }
 
 }

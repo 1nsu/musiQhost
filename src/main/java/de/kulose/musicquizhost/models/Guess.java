@@ -1,13 +1,17 @@
 package de.kulose.musicquizhost.models;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 public class Guess {
-    private Player player;
+    private String playerId;
     private List<String> guesses;
 }

@@ -6,6 +6,7 @@ import de.kulose.musicquizhost.models.SongData;
 import de.kulose.musicquizhost.models.spotify.Token;
 import de.kulose.musicquizhost.models.spotify.SearchResult;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -18,28 +19,35 @@ import java.util.List;
 import java.util.Random;
 
 @Service
+@Slf4j
 public class SpotifyService {
     @Autowired
     SpotifyConfig config;
     @Autowired
     SongMapper songMapper;
 
-    private final String PLAYLIST_URL = "https://api.spotify.com/v1/playlists/%s?market=%s&fields=%s",
+    private final static String PLAYLIST_URL = "https://api.spotify.com/v1/playlists/%s?market=%s&fields=%s",
                          SEARCH_MODIFIER = "tracks.items(track(name, artists(name), id, album(id, name, release_date)))",
                          MARKET="DE";
+    private final static long TIME_BUFFER = 60_000L;
+    private final static List<String> PLAYLISTS = List.of("0HFjjN19YWx5Snx38K5I2v");
 
-    private Random random = new Random();
+    private final Random random = new Random();
     private Token token;
+    private long tokenFetchTime;
     private RestTemplate template = new RestTemplate();
-    private List<String> playlists = new ArrayList<>();
 
     @PostConstruct
     private void initialize() {
-        getToken();
-        playlists.add("0HFjjN19YWx5Snx38K5I2v");
+        fetchToken();
     }
 
     public List<SongData> getSongs(int amount) {
+        if (tokenIsExpired()) {
+            fetchToken();
+            log.warn("Token expired, re-fetching.");
+        }
+
         template = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -47,7 +55,7 @@ public class SpotifyService {
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
         ResponseEntity<SearchResult> response = template.exchange(
-                buildPlaylistUrl(playlists.get(0)),
+                buildPlaylistUrl(PLAYLISTS.get(0)),
                 HttpMethod.GET,
                 requestEntity,
                 SearchResult.class
@@ -79,6 +87,15 @@ public class SpotifyService {
         map.add("client_secret", config.getClientSecret());
 
         return new HttpEntity<>(map, headers);
+    }
+
+    private void fetchToken() {
+        getToken();
+        tokenFetchTime = System.currentTimeMillis();
+    }
+
+    private boolean tokenIsExpired() {
+        return (System.currentTimeMillis() - tokenFetchTime) > (token.getExpiresIn() * 1000L - TIME_BUFFER);
     }
 
     private String buildPlaylistUrl(String playlistId) {

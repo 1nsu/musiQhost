@@ -23,7 +23,6 @@ public class Track {
 
     @JsonProperty("artists")
     private void unpackNameFromNestedObject(List<Map<String, String>> artists) {
-        System.out.println("lol");
         this.artists = artists.stream().map(m -> m.get("name")).collect(Collectors.toList());
     }
 

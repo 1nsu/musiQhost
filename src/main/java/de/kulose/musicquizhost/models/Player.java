@@ -14,6 +14,7 @@ import java.util.Objects;
 public class Player {
     private String name;
     private int points;
+    private boolean isReady = false;
 
     @Override
     public boolean equals(Object o) {

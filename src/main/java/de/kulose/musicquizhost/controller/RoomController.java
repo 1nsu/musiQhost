@@ -30,10 +30,10 @@ public class RoomController {
         return roomService.getRoom(id);
     }
 
-    @Operation(summary = "Updates a room", description = "Updates a room with given values")
-    @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Room updateRoom(@PathVariable("id") String id, @RequestBody @Valid @NotNull(message = "Room must be provided") Room room) {
-        return roomService.updateRoom(id, room);
+    @Operation(summary = "Joins a room", description = "Joins a given player to an open room")
+    @PutMapping(path = "/{id}")
+    public Room joinRoom(@PathVariable("id") String id, @RequestBody @Valid @NotNull(message = "Player host must be provided") Player player) {
+        return roomService.joinRoom(id, player);
     }
 
     @Operation(summary = "Creates a room", description = "Creates a new room with the given settings and player host")
@@ -49,20 +49,26 @@ public class RoomController {
     }
 
     @Operation(summary = "Starts game", description = "Starts a quiz room by setting it to active and getting song data for the quiz")
-    @PostMapping(path = "/{id}/{player}/start", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/{id}/{player}/start", produces = MediaType.APPLICATION_JSON_VALUE)
     public Room startRoom(@PathVariable("id") String id) {
         return roomService.startRoom(id);
     }
 
-    @Operation(summary = "Joins a room", description = "Joins a given player to an open room")
-    @PutMapping(path = "/{id}")
-    public Room joinRoom(@PathVariable("id") String id, @RequestBody @Valid @NotNull(message = "Player host must be provided") Player player) {
-        return roomService.joinRoom(id, player);
+    @Operation(summary = "Sets player ready", description = "Marks the player as READY to start guessing")
+    @PostMapping(path = "/{id}/{player}/ready")
+    public void readyPlayer(@PathVariable("id") String id, @PathVariable("player") String playerId) {
+        roomService.readyPlayer(id, playerId);
+    }
+
+    @Operation(summary = "Updates a room", description = "Updates a room with given values")
+    @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Room updateRoom(@PathVariable("id") String id, @RequestBody @Valid @NotNull(message = "Room must be provided") Room room) {
+        return roomService.updateRoom(id, room);
     }
 
     @Operation(summary = "Submit answers", description = "Submits answers for a round for the given player")
-    @PostMapping(path = "/{id}/{playerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public void submitAnswers(@PathVariable("id") String id, @PathVariable("playerId") String playerId, @RequestBody @Valid @NotNull(message = "Answers must be provided") @NotNull(message = "Answers must be provided, even if empty") List<String> answers) {
-        roomService.submitAnswers(id, playerId, answers);
+    @PostMapping(path = "/{id}/{playerId}/{round}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public void submitAnswers(@PathVariable("id") String id, @PathVariable("playerId") String playerId, @PathVariable int round, @RequestBody @Valid @NotNull(message = "Answers must be provided") @NotNull(message = "Answers must be provided, even if empty") List<String> answers) {
+        roomService.submitAnswers(id, playerId, answers, round);
     }
 }
