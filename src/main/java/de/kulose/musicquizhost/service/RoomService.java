@@ -92,6 +92,10 @@ public class RoomService {
                 throw new IllegalArgumentException("Player " + player + " already in room");
             }
 
+            if (joiningRoom.getSettings().getMaxPlayers() >= joiningRoom.getPlayers().size()) {
+                throw new IllegalArgumentException("Room is full.");
+            }
+
             if (joiningRoom.getStatus() == Status.OPEN) {
                 joiningRoom.setPlayers(
                         Stream.concat(joiningRoom.getPlayers().stream(),

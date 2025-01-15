@@ -5,11 +5,19 @@ spring:
     url: https://tbd
   profiles:
     active: ${ENVIRONMENT:development}
+  webflux:
+    problemdetails:
+      enabled: true
+  mvc:
+    problemdetails:
+      enabled: true
+
 
 spotify:
   client-id: ${SPOTIFY_CLIENT_ID}
   client-secret: ${SPOTIFY_CLIENT_SECRET}
   token-url: https://accounts.spotify.com/api/token
+
 
 server:
   port: 8888

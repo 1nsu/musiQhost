@@ -1,7 +1,7 @@
 package de.kulose.musicquizhost.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +13,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Player {
-    @NotBlank
+    @NotEmpty
     private String name;
     private int points;
     private boolean isReady = false;

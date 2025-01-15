@@ -34,9 +34,8 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         return errorResponse(t, HttpStatus.BAD_REQUEST);
     }
 
-
     protected ResponseEntity<String> errorResponse(Throwable throwable,
-                                                             HttpStatus status) {
+                                                   HttpStatus status) {
         log.error(throwable.getMessage(), throwable);
         return ResponseEntity.status(status).body(throwable.getMessage());
     }

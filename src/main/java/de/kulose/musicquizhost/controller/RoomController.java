@@ -8,10 +8,12 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/room")
 public class RoomController {
@@ -38,7 +40,7 @@ public class RoomController {
 
     @Operation(summary = "Creates a room", description = "Creates a new room with the given settings and player host")
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Room createRoom(@RequestBody @NotNull(message = "Room must be provided") Room room) {
+    public Room createRoom(@RequestBody @Valid @NotNull(message = "Room must be provided") Room room) {
         return roomService.createRoom(room);
     }
 
