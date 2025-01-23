@@ -70,7 +70,7 @@ public class RoomController {
 
     @Operation(summary = "Submit answers", description = "Submits answers for a round for the given player")
     @PostMapping(path = "/{id}/{playerId}/{round}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public void submitAnswers(@PathVariable("id") String id, @PathVariable("playerId") String playerId, @PathVariable int round, @RequestBody @Valid @NotNull(message = "Answers must be provided") @NotNull(message = "Answers must be provided, even if empty") List<String> answers) {
-        roomService.submitAnswers(id, playerId, answers, round);
+    public void submitAnswers(@PathVariable("id") String id, @PathVariable("playerId") String playerId, @RequestBody @Valid @NotNull(message = "Answers must be provided") @NotNull(message = "Answers must be provided, even if empty") List<String> answers) {
+        roomService.submitAnswers(id, playerId, answers);
     }
 }

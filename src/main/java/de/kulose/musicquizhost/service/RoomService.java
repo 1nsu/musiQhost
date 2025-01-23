@@ -28,10 +28,32 @@ public class RoomService {
     }
 
     public Room getRoom(String id) {
-        return rooms.stream()
-                .filter(room -> room.getId().equals(id))
+        Room room = rooms.stream()
+                .filter(r -> r.getId().equals(id))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Room does not exist."));
+
+        if (room.getStatus() == Status.ACTIVE) {
+            Round round = room.currentRound();
+            long remainingTime = System.currentTimeMillis() - round.getStartTime();
+            round.setRemainingTime(remainingTime < 0 ? 0 : remainingTime);
+        }
+
+        if (isTimedOut(room)) {
+            kickInactivePlayers(room);
+        }
+
+        if (isRoomReadyForNextRound(room)) {
+            advanceRound(room);
+        }
+
+        return room;
+    }
+
+    private boolean isRoomReadyForNextRound(Room room) {
+        return room.getPlayers().stream().allMatch(Player::isReady)
+                && room.getStatus() == Status.ACTIVE
+                && room.currentRound().getGuesses().size() == room.getPlayers().size();
     }
 
     public Player getPlayer(String roomId, String playerId) {
@@ -92,7 +114,7 @@ public class RoomService {
                 throw new IllegalArgumentException("Player " + player + " already in room");
             }
 
-            if (joiningRoom.getSettings().getMaxPlayers() >= joiningRoom.getPlayers().size()) {
+            if (joiningRoom.getSettings().getMaxPlayers() <= joiningRoom.getPlayers().size()) {
                 throw new IllegalArgumentException("Room is full.");
             }
 
@@ -109,35 +131,59 @@ public class RoomService {
         }
     }
 
-    public void submitAnswers(String id, String playerId, List<String> answers, int roundIndex) {
+    public void submitAnswers(String id, String playerId, List<String> answers) {
         Room room = getRoom(id);
 
-        Round round = room.getRounds().get(roundIndex);
-        Optional<Guess> guesses = round.getGuesses().stream().filter(guess -> guess.getPlayerId().equals(playerId)).findAny();
-
-        if (guesses.isPresent()) {
-            throw new IllegalArgumentException("Player already guessed in round " + roundIndex);
-        } else {
-            round.getGuesses().add(Guess.builder().playerId(playerId).guesses(answers).build());
+        if (room.getStatus() != Status.ACTIVE) {
+            throw new IllegalArgumentException("Room has not started yet");
         }
 
-        validationService.updatePoints(id, playerId, roundIndex);
+        Round round = room.currentRound();
+
+        Optional<Guess> guesses = round.getGuesses().stream()
+                .filter(guess -> guess.getPlayerId().equals(playerId))
+                .findAny();
+
+        if (guesses.isPresent()) {
+            throw new IllegalArgumentException("Player already guessed in round.");
+        } else {
+            round.getGuesses().add(new Guess(playerId, answers));
+        }
+
+        if (room.currentRound().getGuesses().size() == room.getPlayers().size()) {
+            waitForNextRound(room);
+        } else if (isTimedOut(room)) {
+            kickInactivePlayers(room);
+        }
     }
 
     public Room startRoom(String id) {
         Room room = getRoom(id);
+
+        if (room.getStatus() == Status.ACTIVE) {
+            throw new IllegalArgumentException("Room already active");
+        }
+
+        if (!room.getPlayers().stream().allMatch(Player::isReady)) {
+            throw new IllegalArgumentException("Not all players are ready.");
+        }
+
         List<SongData> songs = spotifyService.getSongs(room.getSettings().getRounds());
         room.setRounds(new ArrayList<>());
 
-        for (int i = 0; i < songs.size(); i++) {
+        for (int i = 1; i <= songs.size(); i++) {
             Round round = Round.builder()
-                    .song(songs.get(i))
+                    .song(songs.get(i-1))
                     .index(i)
+                    .guesses(new ArrayList<>())
                     .build();
             room.getRounds().add(round);
         }
 
         room.setStatus(Status.ACTIVE);
+        room.setCurrentRoundNumber(1);
+        room.currentRound()
+                .setStartTime(System.currentTimeMillis());
         return room;
     }
 
@@ -149,5 +195,31 @@ public class RoomService {
         } else {
             throw new IllegalArgumentException("Player already ready.");
         }
+    }
+
+    private void waitForNextRound(Room room) {
+        room.getPlayers().forEach(player -> player.setReady(false));
+    }
+
+    private void advanceRound(Room room) {
+        room.setCurrentRoundNumber(room.getSettings().getRounds() > room.getCurrentRoundNumber() ? room.getCurrentRoundNumber() + 1 : 0);
+
+        if (room.getCurrentRoundNumber() == 0) {
+            room.setStatus(Status.CLOSED);
+        } else {
+            room.currentRound().setStartTime(System.currentTimeMillis());
+        }
+    }
+
+    private boolean isTimedOut(Room room) {
+        return room.currentRound() != null && System.currentTimeMillis() - room.currentRound().getStartTime() > 60_000;
+    }
+
+    private void kickInactivePlayers(Room room) {
+        List<String> activePlayers = room.currentRound().getGuesses().stream().map(Guess::getPlayerId).toList();
+        List<Player> inactivePlayers = room.getPlayers().stream().filter(player -> activePlayers.contains(player.getName())).toList();
+
+        inactivePlayers.forEach(player -> room.getRounds().forEach(round -> round.removePlayer(player)));
+        room.getPlayers().removeIf(inactivePlayers::contains);
     }
 }

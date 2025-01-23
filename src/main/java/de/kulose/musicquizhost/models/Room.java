@@ -21,11 +21,17 @@ public class Room {
     private Player host;
     private Set<Player> players;
     private List<Round> rounds;
-    private int currentRound;
+    private int currentRoundNumber;
     @NotNull(message = NO_SETTINGS_VALIDATION_MESSAGE)
     private Settings settings;
     private Status status;
-    private int activeRound = 0;
     @JsonIgnore
-    private long closeTime;
+    private long roundStartedAt;
+
+    public Round currentRound() {
+        return this.rounds == null
+                ? null
+                : rounds.stream().filter(round -> round.getIndex() == currentRoundNumber).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unable to get current round."));
+    }
 }
