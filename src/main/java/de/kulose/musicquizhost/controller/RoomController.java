@@ -22,8 +22,8 @@ public class RoomController {
 
     @Operation(summary = "Get a list of rooms", description = "Returns a list of publicly available rooms that have the open status")
     @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<Room> getRooms() {
-        return roomService.getRooms();
+    public List<Room> getRooms(@RequestParam(required = false) Boolean retrieveAll) {
+        return roomService.getRooms(retrieveAll != null ? retrieveAll : false);
     }
 
     @Operation(summary = "Get a room by id", description = "Returns a room with the given id")

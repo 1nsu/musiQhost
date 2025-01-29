@@ -33,7 +33,11 @@ public class RoomService {
         log.info("Cleaning up rooms.");
     }
 
-    public List<Room> getRooms() {
+    public List<Room> getRooms(boolean retrieveAll) {
+        if (retrieveAll) {
+            return rooms;
+        }
+
         return rooms.stream()
                 .filter(room -> room.getStatus().equals(Status.OPEN) && room.getSettings().isPublic())
                 .collect(Collectors.toList());
