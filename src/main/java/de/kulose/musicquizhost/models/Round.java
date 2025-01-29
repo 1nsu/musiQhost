@@ -18,7 +18,7 @@ public class Round {
     private List<Guess> guesses;
     private SongData song;
     private int index;
-    private long remainingTime = -1;
+    private long remainingTime;
     @JsonIgnore
     private long startTime;
 

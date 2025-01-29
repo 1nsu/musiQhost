@@ -2,6 +2,7 @@ package de.kulose.musicquizhost.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -22,6 +23,7 @@ public class Room {
     private Set<Player> players;
     private List<Round> rounds;
     private int currentRoundNumber;
+    @Valid
     @NotNull(message = NO_SETTINGS_VALIDATION_MESSAGE)
     private Settings settings;
     private Status status;

@@ -35,8 +35,13 @@ public class RoomService {
 
         if (room.getStatus() == Status.ACTIVE) {
             Round round = room.currentRound();
-            long remainingTime = System.currentTimeMillis() - round.getStartTime();
-            round.setRemainingTime(remainingTime < 0 ? 0 : remainingTime);
+
+            if (room.getSettings().getMode() == Mode.FASTEST_STOPS && !round.getGuesses().isEmpty()) {
+                round.setRemainingTime(0);
+            } else {
+                long remainingTime = (room.getSettings().getMaxRoundTime() * 1000L) - (System.currentTimeMillis() - round.getStartTime());
+                round.setRemainingTime(remainingTime < 0 ? 0 : remainingTime);
+            }
         }
 
         if (isTimedOut(room)) {
@@ -83,7 +88,7 @@ public class RoomService {
     public Room createRoom(Room room) {
         synchronized (rooms) {
             room.setId(getRandomRoomName());
-            room.setPlayers(Set.of(room.getHost()));
+            room.setPlayers(new HashSet<>(Set.of(room.getHost())));
             room.setStatus(Status.OPEN);
             rooms.add(room);
             return room;
@@ -175,6 +180,7 @@ public class RoomService {
             Round round = Round.builder()
                     .song(songs.get(i-1))
                     .index(i)
+                    .remainingTime(-1)
                     .guesses(new ArrayList<>())
                     .build();
             room.getRounds().add(round);
@@ -212,14 +218,23 @@ public class RoomService {
     }
 
     private boolean isTimedOut(Room room) {
-        return room.currentRound() != null && System.currentTimeMillis() - room.currentRound().getStartTime() > 60_000;
+        return room.currentRound() != null
+                && System.currentTimeMillis() - room.currentRound().getStartTime() > (room.getSettings().getMaxRoundTime() * 1000L + 30_000);
     }
 
     private void kickInactivePlayers(Room room) {
         List<String> activePlayers = room.currentRound().getGuesses().stream().map(Guess::getPlayerId).toList();
-        List<Player> inactivePlayers = room.getPlayers().stream().filter(player -> activePlayers.contains(player.getName())).toList();
+        List<Player> inactivePlayers = room.getPlayers().stream().filter(player -> !activePlayers.contains(player.getName())).toList();
+
+        if (inactivePlayers.isEmpty()) {
+            return;
+        }
 
         inactivePlayers.forEach(player -> room.getRounds().forEach(round -> round.removePlayer(player)));
         room.getPlayers().removeIf(inactivePlayers::contains);
+
+        if (room.getPlayers().isEmpty()) {
+            room.setStatus(Status.CLOSED);
+        }
     }
 }
