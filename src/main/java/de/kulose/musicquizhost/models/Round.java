@@ -25,4 +25,8 @@ public class Round {
     public void removePlayer(Player player) {
         guesses.removeIf(guess -> guess.getPlayerId().equals(player.getName()));
     }
+
+    public void removePlayer(String playerId) {
+        guesses.removeIf(guess -> guess.getPlayerId().equals(playerId));
+    }
 }

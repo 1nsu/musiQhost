@@ -28,7 +28,7 @@ public class Room {
     private Settings settings;
     private Status status;
     @JsonIgnore
-    private long roundStartedAt;
+    private long roomCreationTime;
 
     public Round currentRound() {
         return this.rounds == null

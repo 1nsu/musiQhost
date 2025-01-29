@@ -38,6 +38,12 @@ public class RoomController {
         return roomService.joinRoom(id, player);
     }
 
+    @Operation(summary = "Leaves a room", description = "Leaves the room with the player")
+    @PostMapping(path = "/{id}/{player}/leave")
+    public void leaveRoom(@PathVariable("id") String id, @PathVariable("player") String playerId) {
+        roomService.leaveRoom(id, playerId);
+    }
+
     @Operation(summary = "Creates a room", description = "Creates a new room with the given settings and player host")
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Room createRoom(@RequestBody @Valid @NotNull(message = "Room must be provided") Room room) {

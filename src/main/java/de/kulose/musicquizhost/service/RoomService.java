@@ -3,6 +3,7 @@ package de.kulose.musicquizhost.service;
 import de.kulose.musicquizhost.models.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,6 +21,17 @@ public class RoomService {
     ValidationService validationService;
 
     private final List<Room> rooms = Collections.synchronizedList(new ArrayList<>());
+
+    @Scheduled(fixedDelay = 60_000)
+    public void roomCleanup() {
+        synchronized (rooms) {
+            List<String> roomIds = rooms.stream().map(Room::getId).toList();
+            for (String roomId : roomIds) {
+                getRoom(roomId);
+            }
+        }
+        log.info("Cleaning up rooms.");
+    }
 
     public List<Room> getRooms() {
         return rooms.stream()
@@ -42,6 +54,10 @@ public class RoomService {
                 long remainingTime = (room.getSettings().getMaxRoundTime() * 1000L) - (System.currentTimeMillis() - round.getStartTime());
                 round.setRemainingTime(remainingTime < 0 ? 0 : remainingTime);
             }
+        }
+
+        if (room.getStatus() == Status.OPEN && System.currentTimeMillis() - room.getRoomCreationTime() > 600_000) {
+            room.getPlayers().forEach(player -> leaveRoom(room.getId(), player.getName()));
         }
 
         if (isTimedOut(room)) {
@@ -90,6 +106,7 @@ public class RoomService {
             room.setId(getRandomRoomName());
             room.setPlayers(new HashSet<>(Set.of(room.getHost())));
             room.setStatus(Status.OPEN);
+            room.setRoomCreationTime(System.currentTimeMillis());
             rooms.add(room);
             return room;
         }
@@ -232,6 +249,19 @@ public class RoomService {
 
         inactivePlayers.forEach(player -> room.getRounds().forEach(round -> round.removePlayer(player)));
         room.getPlayers().removeIf(inactivePlayers::contains);
+
+        if (room.getPlayers().isEmpty()) {
+            room.setStatus(Status.CLOSED);
+        }
+    }
+
+    public void leaveRoom(String id, String playerId) {
+        Room room = getRoom(id);
+        room.getPlayers().removeIf(player -> player.getName().equals(playerId));
+
+        if (room.getStatus() == Status.ACTIVE) {
+            room.getRounds().forEach(round -> round.removePlayer(playerId));
+        }
 
         if (room.getPlayers().isEmpty()) {
             room.setStatus(Status.CLOSED);
