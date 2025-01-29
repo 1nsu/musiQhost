@@ -26,7 +26,7 @@ public class Settings {
     @Min(value = 10, message = "Min round time must be 10 or more.")
     private int maxRoundTime;
     @NotNull
-    @Max(value = 20, message = "Rounds must be between 3 and 20.")
-    @Min(value = 3, message = "Rounds must be between 3 and 20.")
+    @Max(value = 21, message = "Rounds must be between 3 and 21.")
+    @Min(value = 3, message = "Rounds must be between 3 and 21.")
     private int rounds;
 }
